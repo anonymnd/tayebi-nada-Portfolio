@@ -1894,6 +1894,16 @@
     node.addEventListener("blur", () => { if (openNode === node) setOpen(null); });
     node.addEventListener("pointerup", (e) => { if (e.pointerType !== "mouse") setOpen(node); setTimeout(() => { touchDown = false; }); });
     node.addEventListener("click", () => setOpen(node)); // fallback for browsers without pointer types on click; tapping outside closes it
+    // Safari (iPhone/iPad): open straight on touchend and cancel the emulated mouse/focus/click events,
+    // which arrive late and can land on a moved element. A finger that moved was a scroll, not a tap.
+    let start = null;
+    node.addEventListener("touchstart", (e) => { const t = e.touches[0]; start = [t.clientX, t.clientY]; }, { passive: true });
+    node.addEventListener("touchend", (e) => {
+      const t = e.changedTouches[0];
+      if (!start || Math.hypot(t.clientX - start[0], t.clientY - start[1]) > 10) return;
+      e.preventDefault();
+      setOpen(node);
+    });
   });
   // Mouse hover zone is the whole moon circle, not just the icon, so moving onto a moon keeps it open.
   document.addEventListener("pointermove", (e) => {
