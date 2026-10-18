@@ -532,6 +532,9 @@
     -webkit-mask-image: linear-gradient(to right, transparent 0, #000 90px);
     mask-image: linear-gradient(to right, transparent 0, #000 90px);
   }
+  .certs-window { cursor: grab; }
+  .certs-window.dragging { cursor: grabbing; user-select: none; }
+  .certs-window.dragging img { pointer-events: none; }
   .certs-row { display: flex; gap: 18px; width: max-content; padding: 0 32px 0 90px; will-change: transform; } /* 90px = fade zone */
   .cert {
     display: flex; flex-direction: column;
@@ -996,7 +999,7 @@
   .reveal-on [data-reveal].in { opacity: 1; translate: none; scale: none; }
 
   @media (max-width: 900px) {
-    .hero { grid-template-columns: 1fr; padding: 40px 16px 56px; gap: 64px; }
+    .hero { grid-template-columns: 1fr; padding: 104px 16px 56px; gap: 64px; } /* top padding clears the fixed nav */
     .about { grid-template-columns: 1fr; padding: 56px 16px 72px; gap: 56px; }
     .photo-wrap { max-width: 360px; width: 100%; margin: 0 auto; }
     .about-title .me { -webkit-text-stroke-width: 3px; }
@@ -1877,13 +1880,17 @@
     if (!narrow.matches) placeOrbiters();
   }
 
+  let touchDown = false;
   stage.querySelectorAll(".tool-node").forEach((node) => {
     node.setAttribute("role", "button");
     node.tabIndex = 0;
     node.setAttribute("aria-expanded", "false");
     // Mouse: hover opens. Keyboard: focus opens. Touch has no hover, so a tap opens.
+    // A touch also focuses the node on finger-down; opening there reflows the grid before the click,
+    // so the click lands elsewhere and closes it again. Touch therefore opens on click only.
+    node.addEventListener("pointerdown", (e) => { touchDown = e.pointerType !== "mouse"; });
     node.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") setOpen(node); });
-    node.addEventListener("focus", () => setOpen(node));
+    node.addEventListener("focus", () => { if (!touchDown) setOpen(node); touchDown = false; });
     node.addEventListener("blur", () => { if (openNode === node) setOpen(null); });
     node.addEventListener("click", (e) => { if (e.pointerType !== "mouse") setOpen(node); }); // tapping outside closes it
   });
@@ -1958,6 +1965,47 @@
   }, { passive: true });
   addEventListener("resize", sizeCerts, { passive: true });
   narrow.addEventListener("change", sizeCerts);
+
+  // The row position follows the page's vertical scroll, so sideways input scrolls the page:
+  // horizontal trackpad swipes (and shift + wheel) and dragging the row with the mouse, both directions.
+  const certsPinned = () => {
+    const top = certs.getBoundingClientRect().top;
+    return certDist && top <= 1 && -top <= certDist + 1;
+  };
+  const moveCerts = (dx) => { // clamped, so a big swipe stops at the last card and can swipe back
+    const at = -certs.getBoundingClientRect().top;
+    const to = Math.min(certDist, Math.max(0, at + dx));
+    scrollBy(0, to - at);
+    return to !== at;
+  };
+  certWin.addEventListener("wheel", (e) => {
+    const dx = e.shiftKey && !e.deltaX ? e.deltaY : e.deltaX;
+    if (!certsPinned() || Math.abs(dx) <= Math.abs(e.shiftKey ? 0 : e.deltaY)) return;
+    if (moveCerts(dx)) e.preventDefault();
+  }, { passive: false });
+  let drag = null;
+  certWin.addEventListener("dragstart", (e) => e.preventDefault()); // native image drag would steal the mouse
+  certWin.addEventListener("pointerdown", (e) => {
+    if (e.pointerType !== "mouse" || e.button !== 0 || !certDist) return;
+    drag = { x: e.clientX, moved: false };
+  });
+  addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x;
+    if (!drag.moved && Math.abs(dx) < 6) return;
+    if (!drag.moved) { drag.moved = true; certWin.classList.add("dragging"); }
+    drag.x = e.clientX;
+    moveCerts(-dx);
+  });
+  addEventListener("pointerup", () => {
+    if (!drag) return;
+    if (drag.moved) { // a drag is not a click on a certificate link
+      const block = (e) => { e.preventDefault(); e.stopPropagation(); };
+      certWin.addEventListener("click", block, { capture: true, once: true });
+      setTimeout(() => { certWin.removeEventListener("click", block, { capture: true }); certWin.classList.remove("dragging"); });
+    }
+    drag = null;
+  });
   addEventListener("load", sizeCerts); // logos change the row width once they load
   sizeCerts();
 
