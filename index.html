@@ -1880,7 +1880,11 @@
     if (!narrow.matches) placeOrbiters();
   }
 
-  let touchDown = false;
+  let touchDown = false, tapAt = 0;
+  // After a touch opens a node the grid reflows; a late emulated click (iOS) then lands on another spot.
+  // For a moment, such clicks neither close the node nor open a different one.
+  const touchOpen = (node) => { tapAt = performance.now(); setOpen(node); };
+  const justTapped = () => performance.now() - tapAt < 700;
   stage.querySelectorAll(".tool-node").forEach((node) => {
     node.setAttribute("role", "button");
     node.tabIndex = 0;
@@ -1891,9 +1895,9 @@
     node.addEventListener("pointerdown", (e) => { touchDown = e.pointerType !== "mouse"; });
     node.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") setOpen(node); });
     node.addEventListener("focus", () => { if (!touchDown) setOpen(node); touchDown = false; });
-    node.addEventListener("blur", () => { if (openNode === node) setOpen(null); });
-    node.addEventListener("pointerup", (e) => { if (e.pointerType !== "mouse") setOpen(node); setTimeout(() => { touchDown = false; }); });
-    node.addEventListener("click", () => setOpen(node)); // fallback for browsers without pointer types on click; tapping outside closes it
+    node.addEventListener("blur", () => { if (openNode === node && !justTapped()) setOpen(null); });
+    node.addEventListener("pointerup", (e) => { if (e.pointerType !== "mouse") touchOpen(node); setTimeout(() => { touchDown = false; }); });
+    node.addEventListener("click", () => { if (!justTapped()) setOpen(node); }); // fallback for browsers without pointer types on click; tapping outside closes it
     // Safari (iPhone/iPad): open straight on touchend and cancel the emulated mouse/focus/click events,
     // which arrive late and can land on a moved element. A finger that moved was a scroll, not a tap.
     let start = null;
@@ -1902,7 +1906,7 @@
       const t = e.changedTouches[0];
       if (!start || Math.hypot(t.clientX - start[0], t.clientY - start[1]) > 10) return;
       e.preventDefault();
-      setOpen(node);
+      touchOpen(node);
     });
   });
   // Mouse hover zone is the whole moon circle, not just the icon, so moving onto a moon keeps it open.
@@ -1912,7 +1916,10 @@
     const dist = Math.hypot(e.clientX - (icon.left + icon.width / 2), e.clientY - (icon.top + icon.height / 2));
     if (dist > REACH) setOpen(null);
   }, { passive: true });
-  document.addEventListener("click", (e) => { if (openNode && !e.target.closest(".tool-node")) setOpen(null); });
+  const closeOutside = (e) => { if (openNode && !justTapped() && !e.target.closest(".tool-node")) setOpen(null); };
+  document.addEventListener("click", closeOutside);
+  // iOS sends no click for taps on plain text or empty space, so touch closes on pointerup (a scroll ends in pointercancel instead).
+  document.addEventListener("pointerup", (e) => { if (e.pointerType !== "mouse") closeOutside(e); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && openNode) setOpen(null); });
   // Award galleries: mouse position picks the photo, touch taps step left/right, arrow keys too.
   document.querySelectorAll(".award-gallery").forEach((g) => {
