@@ -1892,7 +1892,8 @@
     node.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") setOpen(node); });
     node.addEventListener("focus", () => { if (!touchDown) setOpen(node); touchDown = false; });
     node.addEventListener("blur", () => { if (openNode === node) setOpen(null); });
-    node.addEventListener("click", (e) => { if (e.pointerType !== "mouse") setOpen(node); }); // tapping outside closes it
+    node.addEventListener("pointerup", (e) => { if (e.pointerType !== "mouse") setOpen(node); setTimeout(() => { touchDown = false; }); });
+    node.addEventListener("click", () => setOpen(node)); // fallback for browsers without pointer types on click; tapping outside closes it
   });
   // Mouse hover zone is the whole moon circle, not just the icon, so moving onto a moon keeps it open.
   document.addEventListener("pointermove", (e) => {
