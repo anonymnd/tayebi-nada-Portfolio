@@ -2583,8 +2583,8 @@
   const box = document.getElementById("hello"), voice = document.getElementById("hello-voice");
   const ring = document.getElementById("hello-ring"), bubble = document.getElementById("hello-bubble");
   let seen = false;
-  try { seen = sessionStorage.getItem("hello-seen") === "1"; } catch (e) {}
-  const close = () => { box.classList.add("gone"); try { sessionStorage.setItem("hello-seen", "1"); } catch (e) {} };
+  try { seen = localStorage.getItem("hello-seen") === "1"; } catch (e) {} // remembered on this phone: next scans open the portfolio directly
+  const close = () => { box.classList.add("gone"); try { localStorage.setItem("hello-seen", "1"); } catch (e) {} };
   const fromQr = new URLSearchParams(location.search).has("qr"); // only visitors who scanned the forum QR code
   if (fromQr) history.replaceState(null, "", location.pathname + location.hash); // clean URL: a shared link won't replay it
   if (seen || !fromQr) { box.remove(); return; }
