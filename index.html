@@ -1043,9 +1043,40 @@
     .tool-ring, .tool-tech-spin { animation: none; }
     .tool-tech-body { transition: none; }
   }
+
+  /* Greeting splash (shown once per visit) */
+  .hello { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; padding: 24px;
+    background: radial-gradient(circle at 25% 20%, var(--pink-soft), transparent 55%),
+                radial-gradient(circle at 80% 85%, var(--blue-soft), transparent 55%), var(--bg-1);
+    transition: opacity .5s ease, visibility .5s ease; }
+  .hello.gone { opacity: 0; visibility: hidden; }
+  .hello-card { text-align: center; max-width: 560px; }
+  .hello-wave { font-size: 84px; display: inline-block; transform-origin: 70% 70%; animation: wave 1.6s ease-in-out 2; }
+  @keyframes wave { 0%,100% { rotate: 0deg } 20% { rotate: 16deg } 40% { rotate: -8deg } 60% { rotate: 14deg } 80% { rotate: -4deg } }
+  .hello h2 { font-size: clamp(38px, 8vw, 64px); margin-top: 10px; letter-spacing: -1px; }
+  .hello p { font-size: clamp(19px, 3.6vw, 24px); color: var(--text-muted); margin-top: 12px; line-height: 1.45; }
+  .hello p b { color: var(--pink); }
+  .hello-btns { display: flex; flex-direction: column; gap: 12px; align-items: center; margin-top: 30px; }
+  .hello-skip { background: none; border: 0; color: var(--text-muted); font: inherit; font-size: 15px; text-decoration: underline; cursor: pointer; }
+  .hello .btn { border: 0; cursor: pointer; font-family: inherit; }
+  @media (prefers-reduced-motion: reduce) { .hello-wave { animation: none; } .hello { transition: none; } }
+  .cv-links { position: relative; z-index: 2; display: inline-flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; font-size: 16px; color: var(--navy); background: rgba(255,255,255,.85); border: 1px solid var(--card-border); border-radius: 12px; padding: 10px 16px; }
+  .cv-links a { color: var(--navy); font-weight: 600; }
 </style>
 </head>
 <body>
+<div class="hello" id="hello" role="dialog" aria-modal="true" aria-labelledby="hello-title">
+  <div class="hello-card">
+    <span class="hello-wave" aria-hidden="true">👋</span>
+    <h2 id="hello-title">Bonjour !</h2>
+    <p>Je suis <b>Nada</b>, votre prochaine stagiaire.<br>Stage PFE · Full-Stack · dès février 2027</p>
+    <div class="hello-btns">
+      <button class="btn btn-primary" id="hello-go" type="button">🔊 Entrer et dire bonjour</button>
+      <button class="hello-skip" id="hello-skip" type="button">Entrer sans le son</button>
+    </div>
+  </div>
+</div>
+<audio id="hello-voice" src="assets/audio/bonjour.mp3" preload="auto"></audio>
 
 <div class="sky" aria-hidden="true">
   <div class="planet" style="top:9%;left:9%;width:64px;height:64px"></div>
@@ -1096,6 +1127,7 @@
       <a class="btn btn-primary" href="#projects">Explore my work <span aria-hidden="true">→</span></a>
       <a class="btn btn-ghost" href="https://github.com/anonymnd" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
     </div>
+    <p class="cv-links">📄 Download my CV: <a href="assets/cv/Nada-Tayebi-CV-EN.pdf" download>English</a> · <a href="assets/cv/Nada-Tayebi-CV-FR.pdf" download>Français</a></p>
   </section>
 
   <section class="visual" aria-label="Terminal introduction">
@@ -1329,6 +1361,13 @@
         <p>B2B procurement platform where companies find suppliers, request quotes, compare offers and track every order to delivery.</p>
         <ul class="xp-tags"><li>Spring Boot</li><li>React</li><li>PostgreSQL</li><li>Flyway</li><li>Docker</li></ul>
         <div class="xp-foot"><span class="year"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="3.5" width="14" height="12.5" rx="2.5"/><path d="M2 7.5h14M6 1.5v4M12 1.5v4"/></svg>2026</span><span class="xp-status deployed">Live</span></div>
+      </article>
+      <article class="xp-card" data-id="guide" data-cat="web backend">
+        <div class="xp-shot"><img src="assets/projects/guide-touristique/landing.jpg" alt="Agadir coastline, cover of the Guide Touristique app" loading="lazy"></div>
+        <div class="xp-card-head"><h3>Guide Touristique</h3><a class="xp-go" href="https://github.com/safabelhoufrte/guideTouristique" target="_blank" rel="noopener" aria-label="Open the Guide Touristique repository">↗</a></div>
+        <p>Distributed tourist-guide web app for Morocco: browse guided circuits, meet local guides and book a tour, built as REST microservices.</p>
+        <ul class="xp-tags"><li>Spring Boot 3</li><li>Angular</li><li>PostgreSQL</li><li>Microservices</li><li>Docker</li></ul>
+        <div class="xp-foot"><span class="year"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="3.5" width="14" height="12.5" rx="2.5"/><path d="M2 7.5h14M6 1.5v4M12 1.5v4"/></svg>2026</span><span class="xp-status done">Team of 4</span></div>
       </article>
       <article class="xp-card" data-id="fsb" data-cat="web backend">
         <div class="xp-shot"><img src="assets/projects/fsb/landing.jpg" alt="Fast Sourcing Brothers landing page" loading="lazy"></div>
@@ -1704,6 +1743,10 @@
       <li><a class="contact-card" id="mail-card" href="mailto:nadatayebiios@gmail.com">
         <span class="contact-icon"><svg viewBox="0 0 38 38" aria-hidden="true"><rect x="3" y="7" width="32" height="24" rx="6" fill="#f472b6"/><path d="M8 13l11 8 11-8" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         <span><b>Email me</b><small>nadatayebiios@gmail.com</small></span><span class="go" aria-hidden="true">↗</span>
+      </a></li>
+      <li><a class="contact-card" href="assets/cv/Nada-Tayebi-CV-EN.pdf" download>
+        <span class="contact-icon"><svg viewBox="0 0 38 38" aria-hidden="true"><rect x="7" y="3" width="24" height="32" rx="5" fill="#6f9be8"/><path d="M19 11v13M13.5 18.5L19 24l5.5-5.5M13 29h12" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span><b>Download my CV</b><small>PDF · English (French version at the top)</small></span><span class="go" aria-hidden="true">↓</span>
       </a></li>
       <li><a class="contact-card" href="https://www.linkedin.com/in/nada-tayebi-170897285" target="_blank" rel="noopener">
         <span class="contact-icon"><svg viewBox="0 0 38 38" aria-hidden="true"><rect x="3" y="3" width="32" height="32" rx="7" fill="#0a66c2"/><path d="M11 16v12M11 10.5v.5M17 28v-7a4 4 0 0 1 8 0v7M17 16v12" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/></svg></span>
@@ -2165,6 +2208,26 @@
         ["supplier-offerings", "Supplier product offerings"], ["supplier-queues", "Supplier operational queues"],
       ].map(([f, alt]) => ({ src: `assets/projects/procureflow/${f}.jpg`, alt })),
     },
+    guide: {
+      role: "Back-end & front-end developer (team of 4)", type: "Distributed web app · REST microservices", live: null, code: "https://github.com/safabelhoufrte/guideTouristique",
+      about: "A tourist-guide platform for Morocco built by a team of four as independent services that talk through REST (JSON) APIs. I owned the Circuit service and the circuit pages of the Angular app.",
+      highlights: [
+        "Circuit microservice in Java 21 and Spring Boot 3: layered MVC, Spring Data JPA, Flyway migrations, and calls to the Guide service's REST API.",
+        "Angular pages for the circuit catalogue and circuit details, connected to the booking flow.",
+        "Dockerfile, multi-service Docker Compose, a GitHub Actions workflow and an integration test.",
+        "UML class, activity and sequence diagrams for the Circuit service.",
+      ],
+      patterns: ["Microservices", "REST (JSON)", "Layered MVC", "Repository pattern", "Versioned migrations", "Docker Compose"],
+      tags: ["Java 21", "Spring Boot 3", "Spring Data JPA", "Flyway", "PostgreSQL", "Angular", "Docker", "GitHub Actions", "UML"],
+      gallery: [
+        { src: "assets/projects/guide-touristique/landing.jpg", alt: "Agadir coastline, app cover" },
+        { src: "assets/projects/guide-touristique/kasbah-agadir.jpg", alt: "Demo circuit: Kasbah of Agadir" },
+        { src: "assets/projects/guide-touristique/medina-marrakech.jpg", alt: "Demo circuit: Marrakech medina" },
+        { src: "assets/projects/guide-touristique/01-classes-circuit.png", alt: "UML class diagram of the Circuit service" },
+        { src: "assets/projects/guide-touristique/02-activite-circuit.png", alt: "UML activity diagram of the Circuit service" },
+        { src: "assets/projects/guide-touristique/03-sequence-circuit.png", alt: "UML sequence diagram of the Circuit service" },
+      ],
+    },
     turritopsis: {
       role: "Full-stack developer", type: "ESG assessment platform", live: "https://turritopsis-esg-diagnostic.vercel.app/", code: "https://github.com/anonymnd/turritopsis-esg-diagnostic",
       about: "A platform that helps Moroccan SMEs measure their environmental, social and governance practices. AI prepares the analysis; the final score is always decided by a human reviewer.",
@@ -2504,6 +2567,28 @@
     const outside = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom; // the backdrop counts as the dialog itself
     if (outside || e.target.closest(".mail-topics a")) mailModal.close();
   });
+</script>
+<script>
+(() => {
+  const box = document.getElementById("hello"), voice = document.getElementById("hello-voice");
+  let seen = false;
+  try { seen = sessionStorage.getItem("hello-seen") === "1"; } catch (e) {}
+  const close = () => { box.classList.add("gone"); try { sessionStorage.setItem("hello-seen", "1"); } catch (e) {} };
+  if (seen) { box.remove(); return; }
+  const speak = () => {
+    if (!("speechSynthesis" in window)) return;
+    const u = new SpeechSynthesisUtterance("Bonjour ! Je suis Nada, votre prochaine stagiaire. Bienvenue sur mon portfolio.");
+    u.lang = "fr-FR"; speechSynthesis.speak(u);
+  };
+  document.getElementById("hello-go").addEventListener("click", () => {
+    const played = voice.play();
+    if (played && played.catch) played.catch(speak);
+    close();
+  });
+  document.getElementById("hello-skip").addEventListener("click", close);
+  addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+  document.getElementById("hello-go").focus();
+})();
 </script>
 </body>
 </html>
